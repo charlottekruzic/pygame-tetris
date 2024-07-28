@@ -33,6 +33,7 @@ class Tetris :
 
         self.fall_speed = 0.5
         self.fall_time = 0
+        self.move_time = 0
 
         self.score = 0
         self.level = 0
@@ -41,16 +42,18 @@ class Tetris :
 
 
     def game_loop(self):
-       
+        initial_delay = 0.2
+        repeat_delay = 0.05
+        left_time = right_time = down_time = 0
+        
         while self.running:
             dt = self.clock.tick(60) / 1000
             self.fall_time += dt
             
-            if self.current_piece == None:
+            if self.current_piece is None:
                 self.current_piece = piece.Piece(self.grid)
                 self.next_piece = piece.Piece(self.grid)
                 self.update_shadow_piece()
-                #self.grid.add_piece(self.current_piece)
 
             if self.fall_time > self.fall_speed:
                 self.fall_time = 0
@@ -59,11 +62,8 @@ class Tetris :
                     self.current_piece = self.next_piece
                     self.next_piece = piece.Piece(self.grid)
                     self.update_shadow_piece()
-
-
             
-            
-            # Gestion evenements
+            # Gestion des événements
             for event in pygame.event.get():
                 if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                     self.running = False
@@ -71,44 +71,58 @@ class Tetris :
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         self.current_piece.rotate()
-                    if event.key == pygame.K_RIGHT:
-                        self.current_piece.move("right")
-                    if event.key == pygame.K_LEFT:
-                        self.current_piece.move("left")
-                    if event.key == pygame.K_DOWN:
-                        if not self.current_piece.move("down"):
-                            self.grid.add_piece(self.current_piece)
-                            self.current_piece = self.next_piece
-                            self.next_piece = piece.Piece(self.grid)
-                        else:
-                            self.score += 1
-                            nb_lines = self.clear_lines()
-                            self.score += nb_lines * 10
-
-
-                    if event.key == pygame.K_SPACE:
+                        self.current_piece.fix_position()
+                        self.update_shadow_piece()
+                    elif event.key == pygame.K_SPACE:
                         pos_init_y = self.current_piece.position[0]
                         while self.current_piece.move("down"):
                             pass
-
-                        block_skip = self.current_piece.position[0] - pos_init_y
+                        blocks_skip = self.current_piece.position[0] - pos_init_y
                         
                         self.grid.add_piece(self.current_piece)
                         self.current_piece = self.next_piece
                         self.next_piece = piece.Piece(self.grid)
-
                         
-
-                        self.score += block_skip
+                        self.score += blocks_skip
                         self.clear_lines()
-                        
+                        self.update_shadow_piece()
 
+            # deplacement continu
+            keys = pygame.key.get_pressed()
+            
+            if keys[pygame.K_LEFT]:
+                if left_time == 0 or left_time > initial_delay and (left_time - initial_delay) % repeat_delay < dt:
+                    self.current_piece.move("left")
                     self.update_shadow_piece()
+                left_time += dt
+            else:
+                left_time = 0
 
+            if keys[pygame.K_RIGHT]:
+                if right_time == 0 or right_time > initial_delay and (right_time - initial_delay) % repeat_delay < dt:
+                    self.current_piece.move("right")
+                    self.update_shadow_piece()
+                right_time += dt
+            else:
+                right_time = 0
 
-            # maj ecran         
+            if keys[pygame.K_DOWN]:
+                if down_time == 0 or down_time > initial_delay and (down_time - initial_delay) % repeat_delay < dt:
+                    if self.current_piece.move("down"):
+                        self.score += 1
+                    else:
+                        self.grid.add_piece(self.current_piece)
+                        self.current_piece = self.next_piece
+                        self.next_piece = piece.Piece(self.grid)
+                        self.update_shadow_piece()
+                        nb_lines = self.clear_lines()
+                        self.score += nb_lines * 10
+                down_time += dt
+            else:
+                down_time = 0
+
+            # maj ecran        
             self.draw_game()
-
 
         pygame.quit()
 
@@ -201,3 +215,5 @@ class Tetris :
         self.screen.blit(text, (up_left_right_part, 10))
         text = font.render(f"Level: {self.level}", True, (255, 255, 255))
         self.screen.blit(text, (up_left_right_part, 50))
+        text = font.render(f"Lines break: {self.total_lines_cleared}", True, (255, 255, 255))
+        self.screen.blit(text, (up_left_right_part, 90))

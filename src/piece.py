@@ -25,17 +25,24 @@ class Piece:
             self.orientation = 0
         
         self.grid = grid
-
-        self.position = [0, self.grid.width // 2 - len(self.shape[0]) // 2]
         self.rotate(self.orientation)
+
+        deplacement = 0
+        while self.shape and not any(self.shape[deplacement]):
+            deplacement+=1
+
+        self.position = [0-deplacement, self.grid.width // 2 - len(self.shape[0]) // 2]
+
+        
         
     def set_position(self, position):
         self.position = position
 
+
     def rotate(self, number=1):
         for _ in range(number):
             self.shape = [list(row) for row in zip(*self.shape[::-1])]
-        self.fix_position()
+        
 
 
     def move(self, direction):
