@@ -31,7 +31,9 @@ class Tetris :
 
         self.shadow_piece = None
 
-        self.fall_speed = 0.5
+
+        self.fall_speeds = [1.000, 0.840,0.706,0.593,0.498,0.418,0.351,0.295,0.248,0.208,0.175,0.147,0.123,0.104,0.087,0.073,0.061,0.052,0.043,0.036]
+        self.fall_speed = self.fall_speeds[0]
         self.fall_time = 0
         self.move_time = 0
 
@@ -40,6 +42,8 @@ class Tetris :
 
         self.total_lines_cleared = 0
 
+        self.game_over = False
+
 
     def game_loop(self):
         initial_delay = 0.2
@@ -47,6 +51,48 @@ class Tetris :
         left_time = right_time = down_time = 0
         
         while self.running:
+            
+            if self.game_over:
+                # fond ecran transparent
+                overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
+                overlay.set_alpha(200)
+                overlay.fill((0, 0, 0))
+                self.screen.blit(overlay, (0, 0))                
+                font = pygame.font.Font(None, 50)
+                text = font.render("Game Over", True, (255, 255, 255))
+                self.screen.blit(text, (WINDOW_WIDTH / 2 - text.get_width() / 2, WINDOW_HEIGHT / 2 - text.get_height() / 2))
+                pygame.display.flip()
+
+                # pause jusqu'à ce que l'utilisateur appuie sur une touche
+                while self.game_over:
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT :
+                            self.running = False
+                            self.game_over = False
+                            break
+
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_ESCAPE:
+                                self.running = False
+                                self.game_over = False
+                                break
+                            if event.key == pygame.K_SPACE:
+                                self.game_over = False
+                                self.score = 0
+                                self.level = 0
+                                self.total_lines_cleared = 0
+                                self.grid = grid.Grid(GRID_WIDTH, GRID_HEIGHT)
+                                self.current_piece = None
+                                self.next_piece = None
+                                self.shadow_piece = None
+                                break
+                        
+                    if not self.running:
+                        break
+
+
+
+
             dt = self.clock.tick(60) / 1000
             self.fall_time += dt
             
@@ -59,9 +105,7 @@ class Tetris :
                 self.fall_time = 0
                 if not self.current_piece.move("down"):
                     self.grid.add_piece(self.current_piece)
-                    self.current_piece = self.next_piece
-                    self.next_piece = piece.Piece(self.grid)
-                    self.update_shadow_piece()
+                    self.new_piece()
             
             # Gestion des événements
             for event in pygame.event.get():
@@ -80,12 +124,10 @@ class Tetris :
                         blocks_skip = self.current_piece.position[0] - pos_init_y
                         
                         self.grid.add_piece(self.current_piece)
-                        self.current_piece = self.next_piece
-                        self.next_piece = piece.Piece(self.grid)
+                        self.new_piece()
                         
                         self.score += blocks_skip
                         self.clear_lines()
-                        self.update_shadow_piece()
 
             # deplacement continu
             keys = pygame.key.get_pressed()
@@ -112,9 +154,7 @@ class Tetris :
                         self.score += 1
                     else:
                         self.grid.add_piece(self.current_piece)
-                        self.current_piece = self.next_piece
-                        self.next_piece = piece.Piece(self.grid)
-                        self.update_shadow_piece()
+                        self.new_piece()
                         nb_lines = self.clear_lines()
                         self.score += nb_lines * 10
                 down_time += dt
@@ -125,6 +165,19 @@ class Tetris :
             self.draw_game()
 
         pygame.quit()
+
+
+    def new_piece(self):
+        self.current_piece = self.next_piece
+        self.next_piece = piece.Piece(self.grid)
+        self.update_shadow_piece()
+
+        self.is_game_over()
+
+    def is_game_over(self):
+        if not self.current_piece.is_valid_position(self.current_piece.position[0], self.current_piece.position[1]):
+            self.game_over = True
+    
 
     def clear_lines(self):
         lines_cleared = self.grid.clear_lines()
@@ -148,6 +201,9 @@ class Tetris :
 
     def update_level(self):
         self.level = self.total_lines_cleared // 10
+
+        if self.level >= len(self.fall_speeds):
+            self.fall_speed = self.fall_speeds[self.level]
 
     def update_shadow_piece(self):
         self.shadow_piece = self.current_piece.copy((100, 100, 100))
