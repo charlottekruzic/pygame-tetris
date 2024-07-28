@@ -43,64 +43,39 @@ class Tetris :
         self.total_lines_cleared = 0
 
         self.game_over = False
+        self.is_start = False
+    
+    
+    
+
 
 
     def game_loop(self):
         initial_delay = 0.2
         repeat_delay = 0.05
         left_time = right_time = down_time = 0
+
+        # Ecran de démarrage
+        while not self.is_start:  
+            self.print_start_screen()
         
+        # Boucle principale
         while self.running:
             
+            # Ecran de fin de jeu
             if self.game_over:
-                # fond ecran transparent
-                overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
-                overlay.set_alpha(200)
-                overlay.fill((0, 0, 0))
-                self.screen.blit(overlay, (0, 0))                
-                font = pygame.font.Font(None, 50)
-                text = font.render("Game Over", True, (255, 255, 255))
-                self.screen.blit(text, (WINDOW_WIDTH / 2 - text.get_width() / 2, WINDOW_HEIGHT / 2 - text.get_height() / 2))
-                pygame.display.flip()
-
-                # pause jusqu'à ce que l'utilisateur appuie sur une touche
-                while self.game_over:
-                    for event in pygame.event.get():
-                        if event.type == pygame.QUIT :
-                            self.running = False
-                            self.game_over = False
-                            break
-
-                        if event.type == pygame.KEYDOWN:
-                            if event.key == pygame.K_ESCAPE:
-                                self.running = False
-                                self.game_over = False
-                                break
-                            if event.key == pygame.K_SPACE:
-                                self.game_over = False
-                                self.score = 0
-                                self.level = 0
-                                self.total_lines_cleared = 0
-                                self.grid = grid.Grid(GRID_WIDTH, GRID_HEIGHT)
-                                self.current_piece = None
-                                self.next_piece = None
-                                self.shadow_piece = None
-                                break
-                        
-                    if not self.running:
-                        break
-
-
-
+                self.print_game_over_screen()
+                
 
             dt = self.clock.tick(60) / 1000
             self.fall_time += dt
             
+            # Premiere piece
             if self.current_piece is None:
                 self.current_piece = piece.Piece(self.grid)
                 self.next_piece = piece.Piece(self.grid)
                 self.update_shadow_piece()
-
+                
             if self.fall_time > self.fall_speed:
                 self.fall_time = 0
                 if not self.current_piece.move("down"):
@@ -167,12 +142,133 @@ class Tetris :
         pygame.quit()
 
 
+    def print_game_over_screen(self):
+        overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
+        overlay.set_alpha(200)
+        overlay.fill((0, 0, 0))
+        self.screen.blit(overlay, (0, 0))                
+        font = pygame.font.Font(None, 50)
+        text = font.render("Game Over", True, (255, 255, 255))
+        self.screen.blit(text, (WINDOW_WIDTH / 2 - text.get_width() / 2, WINDOW_HEIGHT / 2 - text.get_height() / 2))
+
+        font = pygame.font.Font(None, 30)
+        text = font.render("Press SPACE to restart", True, (255, 255, 255))
+        self.screen.blit(text, (WINDOW_WIDTH / 2 - text.get_width() / 2, WINDOW_HEIGHT / 2 + text.get_height() * 2))
+
+
+        pygame.display.flip()
+
+        while self.game_over:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT :
+                    self.running = False
+                    self.game_over = False
+                    break
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        self.running = False
+                        self.game_over = False
+                        break
+                    if event.key == pygame.K_SPACE:
+                        self.game_over = False
+                        self.score = 0
+                        self.level = 0
+                        self.total_lines_cleared = 0
+                        self.grid = grid.Grid(GRID_WIDTH, GRID_HEIGHT)
+                        self.current_piece = None
+                        self.next_piece = None
+                        self.shadow_piece = None
+                        self.fall_speed = self.fall_speeds[0]
+                        break
+                
+            if not self.running:
+                break
+
+
+    def print_start_screen(self):
+        self.screen.fill((0, 0, 0))
+        title_font = pygame.font.Font(None, 80)
+        title_text = title_font.render("Tetris", True, (255, 255, 255))
+        self.screen.blit(title_text, (WINDOW_WIDTH / 2 - title_text.get_width() / 2, WINDOW_HEIGHT / 8 - title_text.get_height() / 2))
+
+        rules_font = pygame.font.Font(None, 30)
+        rules_text = rules_font.render("R : Open Rules", True, (255, 255, 255))
+        self.screen.blit(rules_text, (WINDOW_WIDTH - rules_text.get_width() - 10, WINDOW_HEIGHT - rules_text.get_height() - 10))
+
+        start_font = pygame.font.Font(None, 60)
+        start_text = start_font.render("Press SPACE to start", True, (255, 255, 255))
+        self.screen.blit(start_text, (WINDOW_WIDTH / 2 - start_text.get_width() / 2, WINDOW_HEIGHT / 1.5 + start_text.get_height() ))
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+                self.is_start = True
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.running = False
+                    self.is_start = True
+                if event.key == pygame.K_SPACE:
+                    self.is_start = True
+                
+                if event.key == pygame.K_r:
+                    self.print_rules_screen()
+
+    def print_rules_screen(self):
+        self.screen.fill((0, 0, 0))
+
+        title_font = pygame.font.Font(None, 60)
+        title_text = title_font.render("Rules", True, (255, 255, 255))
+        self.screen.blit(title_text, (WINDOW_WIDTH / 2 - title_text.get_width() / 2, WINDOW_HEIGHT / 8 - title_text.get_height() / 2))
+
+        rules_font = pygame.font.Font(None, 30)
+        
+        rules = [
+            "> : Move left",
+            "< : Move right",
+            "^ : Rotate",
+            "v : Soft drop",
+            "Space : Hard drop",
+            "Esc : Quit"
+        ]
+
+        start_y = WINDOW_HEIGHT / 2 - len(rules) * rules_font.get_height() / 2
+        x_position = WINDOW_WIDTH / 2 - 100
+
+        for i, rule in enumerate(rules):
+            rules_text = rules_font.render(rule, True, (255, 255, 255))
+            y_position = start_y + i * rules_font.get_height() * 1.5
+            self.screen.blit(rules_text, (x_position, y_position))
+
+
+        rules_font = pygame.font.Font(None, 30)
+        rules_text = rules_font.render("R : Close Rules", True, (255, 255, 255))
+        self.screen.blit(rules_text, (WINDOW_WIDTH - rules_text.get_width() - 10, WINDOW_HEIGHT - rules_text.get_height() - 10))
+
+        pygame.display.flip()
+
+        pause = True
+        while pause:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                    self.running = False
+                    self.is_start = True
+                    pause = False
+            
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_r:
+                        pause = False
+                        break
+
     def new_piece(self):
         self.current_piece = self.next_piece
+        self.is_game_over()
         self.next_piece = piece.Piece(self.grid)
         self.update_shadow_piece()
 
-        self.is_game_over()
+        
 
     def is_game_over(self):
         if not self.current_piece.is_valid_position(self.current_piece.position[0], self.current_piece.position[1]):
@@ -202,7 +298,7 @@ class Tetris :
     def update_level(self):
         self.level = self.total_lines_cleared // 10
 
-        if self.level >= len(self.fall_speeds):
+        if self.level <= len(self.fall_speeds):
             self.fall_speed = self.fall_speeds[self.level]
 
     def update_shadow_piece(self):
