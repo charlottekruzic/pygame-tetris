@@ -37,6 +37,8 @@ class Tetris :
         self.score = 0
         self.level = 0
 
+        self.total_lines_cleared = 0
+
 
     def game_loop(self):
        
@@ -78,12 +80,28 @@ class Tetris :
                             self.grid.add_piece(self.current_piece)
                             self.current_piece = self.next_piece
                             self.next_piece = piece.Piece(self.grid)
+                        else:
+                            self.score += 1
+                            nb_lines = self.clear_lines()
+                            self.score += nb_lines * 10
+
+
                     if event.key == pygame.K_SPACE:
+                        pos_init_y = self.current_piece.position[0]
                         while self.current_piece.move("down"):
                             pass
+
+                        block_skip = self.current_piece.position[0] - pos_init_y
+                        
                         self.grid.add_piece(self.current_piece)
                         self.current_piece = self.next_piece
                         self.next_piece = piece.Piece(self.grid)
+
+                        
+
+                        self.score += block_skip
+                        self.clear_lines()
+                        
 
                     self.update_shadow_piece()
 
@@ -94,6 +112,28 @@ class Tetris :
 
         pygame.quit()
 
+    def clear_lines(self):
+        lines_cleared = self.grid.clear_lines()
+        self.total_lines_cleared += lines_cleared
+        self.update_score(lines_cleared)
+        self.update_level()
+
+        return lines_cleared
+    
+
+    def update_score(self, lines_cleared):
+        factor = self.level + 1
+        if lines_cleared == 1:
+            self.score += 40 * factor
+        elif lines_cleared == 2:
+            self.score += 100 * factor
+        elif lines_cleared == 3:
+            self.score += 300 * factor
+        elif lines_cleared == 4:
+            self.score += 1200 * factor
+
+    def update_level(self):
+        self.level = self.total_lines_cleared // 10
 
     def update_shadow_piece(self):
         self.shadow_piece = self.current_piece.copy((100, 100, 100))
