@@ -10,8 +10,6 @@ shapes = [
     {"shape" : [[0, 0, 1], [1, 1, 1],[0,0,0]], "color" : (255, 155, 0)} # L : orange
 ]
 
-
-
 class Piece:
     def __init__ (self, grid, shape=None):
         if shape==None:
@@ -23,28 +21,20 @@ class Piece:
             self.shape = shape.get("shape")
             self.color = shape.get("color")
             self.orientation = 0
-        
         self.grid = grid
         self.rotate(self.orientation)
-
         deplacement = 0
         while self.shape and not any(self.shape[deplacement]):
             deplacement+=1
-
         self.position = [0-deplacement, self.grid.width // 2 - len(self.shape[0]) // 2]
-
-        
-        
+    
     def set_position(self, position):
         self.position = position
-
 
     def rotate(self, number=1):
         for _ in range(number):
             self.shape = [list(row) for row in zip(*self.shape[::-1])]
         
-
-
     def move(self, direction):
         if direction == 'left':
             if self.is_valid_position(self.position[0], self.position[1] - 1):
@@ -65,7 +55,6 @@ class Piece:
             self.position[1] = self.grid.width - len(self.shape[0])
 
     def is_valid_position(self, row, col):
-        
         for y, r in enumerate(self.shape):
             for x, value in enumerate(r):
                 if value:
@@ -80,5 +69,3 @@ class Piece:
         new_piece = Piece(self.grid, shape={"shape": self.shape, "color": color}) 
         new_piece.position = self.position.copy()
         return new_piece
-    
-

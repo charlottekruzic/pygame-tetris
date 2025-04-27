@@ -10,7 +10,6 @@ GRID_WIDTH = 10
 
 PIECE_SIZE = 30
 
-
 class Tetris :
 
     def __init__(self):
@@ -31,7 +30,6 @@ class Tetris :
 
         self.shadow_piece = None
 
-
         self.fall_speeds = [1.000, 0.840,0.706,0.593,0.498,0.418,0.351,0.295,0.248,0.208,0.175,0.147,0.123,0.104,0.087,0.073,0.061,0.052,0.043,0.036]
         self.fall_speed = self.fall_speeds[0]
         self.fall_time = 0
@@ -43,12 +41,7 @@ class Tetris :
         self.total_lines_cleared = 0
 
         self.game_over = False
-        self.is_start = False
-    
-    
-    
-
-
+        self.is_start = False   
 
     def game_loop(self):
         initial_delay = 0.2
@@ -141,7 +134,6 @@ class Tetris :
 
         pygame.quit()
 
-
     def print_game_over_screen(self):
         overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
         overlay.set_alpha(200)
@@ -154,7 +146,6 @@ class Tetris :
         font = pygame.font.Font(None, 30)
         text = font.render("Press SPACE to restart", True, (255, 255, 255))
         self.screen.blit(text, (WINDOW_WIDTH / 2 - text.get_width() / 2, WINDOW_HEIGHT / 2 + text.get_height() * 2))
-
 
         pygame.display.flip()
 
@@ -268,8 +259,6 @@ class Tetris :
         self.next_piece = piece.Piece(self.grid)
         self.update_shadow_piece()
 
-        
-
     def is_game_over(self):
         if not self.current_piece.is_valid_position(self.current_piece.position[0], self.current_piece.position[1]):
             self.game_over = True
@@ -280,10 +269,8 @@ class Tetris :
         self.total_lines_cleared += lines_cleared
         self.update_score(lines_cleared)
         self.update_level()
-
         return lines_cleared
     
-
     def update_score(self, lines_cleared):
         factor = self.level + 1
         if lines_cleared == 1:
@@ -313,9 +300,7 @@ class Tetris :
         self.draw_shadow_piece(self.shadow_piece)
         self.draw_piece(self.current_piece) 
         self.draw_next_piece(self.next_piece)
-
         self.draw_score()
-
         pygame.display.flip()
 
     def draw_grid(self):

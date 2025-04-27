@@ -1,8 +1,5 @@
 import src.tetris as tetris
 
-
-
-
 # Fonction principale
 def main():
     game = tetris.Tetris()
