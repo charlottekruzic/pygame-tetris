@@ -40,7 +40,7 @@ The game level increases after every 10 lines cleared. As the level increases, p
 ### Setup
 1. Clone the repository:
    ```
-   git clone https://github.com/charlottekruzic/tetris.git
+   git clone https://github.com/charlottekruzic/pygame-tetris.git
    cd tetris
    ```
 2. Install the required dependencies:
